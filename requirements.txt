@@ -1,0 +1,12 @@
+langchain
+langgraph
+langchain_openai
+langchain_community
+pymongo
+pinecone-client
+sentence-transformers
+streamlit
+python-dotenv
+fastapi
+uvicorn
+motor 
