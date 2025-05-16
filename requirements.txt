@@ -3,7 +3,7 @@ langgraph==0.4.3
 langchain_openai==0.3.16
 langchain_community
 pymongo
-pinecone-client==3.0.0
+pinecone
 sentence-transformers
 streamlit
 python-dotenv
