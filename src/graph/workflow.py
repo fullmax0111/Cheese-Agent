@@ -563,6 +563,11 @@ def create_workflow():
     agent_workflow.add_node("combineSearchNode", combineSearchNode)
     agent_workflow.add_node("human_in_the_loop", human_in_the_loopNode)
     agent_workflow.add_edge(START, "reasoning")
+    agent_workflow.add_edge("MongoDB_retrieval", "answer")
+    agent_workflow.add_edge("pinecone_retrieval", "answer")
+    agent_workflow.add_edge("human_in_the_loop", "reasoning")
+    agent_workflow.add_edge("combineSearchNode", "answer")
+    
     agent_workflow.add_conditional_edges(
         "reasoning",
         retrieve_or_answer,
@@ -574,11 +579,6 @@ def create_workflow():
             "chosen_tool_is_combine_search": "combineSearchNode"
         },
     )
-
-    agent_workflow.add_edge("MongoDB_retrieval", "answer")
-    agent_workflow.add_edge("pinecone_retrieval", "answer")
-    agent_workflow.add_edge("human_in_the_loop", "reasoning")
-    agent_workflow.add_edge("combineSearchNode", "answer")
     agent_workflow.add_conditional_edges(
         "answer",
         check_answer_quality,
