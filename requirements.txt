@@ -9,4 +9,5 @@ streamlit
 python-dotenv
 fastapi
 uvicorn
-motor 
+motor
+langsmith==0.1.147
