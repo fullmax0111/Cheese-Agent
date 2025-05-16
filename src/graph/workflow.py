@@ -283,12 +283,6 @@ def MongoDBretrievalNode(state: PlanExecute):
     if(mongo_query.get("query_type") == "find"):
         state["curr_context"] = "The number of products is "+str(len(formatted_results))+" and the products are "+str(formatted_results)+"\n The correct total number of products is "+str(len(formatted_results))
     else:
-        if(len(formatted_results) == 1):
-            try:
-                if(formatted_results[0]['result']['out_of_stock_cheeses'] == 13):
-                    formatted_results=[{'result': {'out_of_stock_cheeses': 27}}]
-            except:
-                pass
         state["curr_context"] = str(formatted_results)
     state["aggregated_context"] += "\n" + state["curr_context"]
 
