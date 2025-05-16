@@ -77,9 +77,9 @@ Available fields in the database:
 - weight_each: Weight of each unit (float)
 
 
-
-
 Query Type Selection Rules:
+When user query includes "show", you must use "find" query_type.
+for example: "how many cheese products do you have? show me product" -> "find"
 1. Use "find" query_type when:
    - must use find When the user ask includes show products.
    - Retrieving individual documents
@@ -89,7 +89,7 @@ Query Type Selection Rules:
    - No aggregation operations needed
 
 2. Use "aggregate" query_type when:
-   - Counting items (e.g., "how many", "count", "number of", "total number of"), but except when the user ask for show products.
+   - Counting items (e.g., "how many", "count", "number of", "total number of"), but except when the user ask for show products even though the message includes "how much"
         for example: "how many cheese products do you have? show me product" -> "find"
    - Calculating averages, sums, or other aggregations
    - Grouping data (e.g., "by brand", "by department")
@@ -278,5 +278,6 @@ Important rules:
     - Always use "aggregate" query_type
 16. For text search, when using $regex, don't include "cheese".
 
+You must generate one correct query, I like find more than aggregate.
 Your query:
     """
