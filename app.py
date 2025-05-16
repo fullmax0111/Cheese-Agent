@@ -66,7 +66,7 @@ with st.sidebar:
         st.session_state.thread_id += 1  # Increment thread ID for new conversation
         st.rerun()
     
-    image_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "chesse_agent/src/image", "Capture.PNG"))
+    image_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "image", "Capture.PNG"))
     if os.path.exists(image_path):
         st.image(image_path, caption="Cheese Bot Graph Visualization")
         
@@ -83,7 +83,7 @@ if "show_modal" not in st.session_state:
 
 # Display modal in main container if button was clicked
 if st.session_state.show_modal:
-    image_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "chesse_agent/src/image", "Capture.PNG"))
+    image_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "image", "Capture.PNG"))
     if os.path.exists(image_path):
         import base64
         
