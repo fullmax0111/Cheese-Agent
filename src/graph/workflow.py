@@ -48,6 +48,13 @@ def retrieve_or_answer(state: PlanExecute):
         }
         state["reasoning_steps"].append(reasoning_step)
         return "chosen_tool_is_pinecone_retrieval"
+    elif state["tool"] == "combined_search":
+        reasoning_step = {
+            "stage": "decide_tool",
+            "content": f"Chosen tool is combine_search"
+        }
+        state["reasoning_steps"].append(reasoning_step)
+        return "chosen_tool_is_combine_search"
     elif state["tool"] == "Greet":
         reasoning_step = {
             "stage": "decide_tool",
@@ -126,7 +133,10 @@ def reasoningNode(state: PlanExecute):
     elif output.tool == "pinecone_retrieval":
         state["query_to_retrieve_or_answer"] = output.query
         state["tool"]="pinecone_retrieval"
-
+    elif output.tool == "combined_search":
+        state["query_to_retrieve_or_answer"] = output.query
+        state["curr_context"] = output.curr_context
+        state["tool"]="combined_search"
     elif output.tool == "Greet":
         state["query_to_retrieve_or_answer"] = output.query
         state["curr_context"] = output.curr_context
@@ -373,7 +383,6 @@ Guidelines:
 10 You must return the number of products.
 11. You must get image link from the products and show image.
 
-
 Context:
 {context}
 Your answer:"""
@@ -385,7 +394,7 @@ Your answer:"""
     )
 
     # Initialize the LLM
-    llm = ChatOpenAI(temperature=0.7, model_name="gpt-4o")
+    llm = ChatOpenAI(temperature=0, model_name="gpt-4o")
 
     # Generate the answer
     # print("Context:", state["curr_context"])
@@ -413,7 +422,7 @@ Your answer:"""
     """
     
     evaluation_response = client.chat.completions.create(
-        model="gpt-4o-mini",  # Using a faster model for evaluation
+        model="gpt-4o",  # Using a faster model for evaluation
         messages=[
             {"role": "system", "content": "You are a quality evaluation assistant."},
             {"role": "user", "content": evaluation_prompt}
@@ -427,7 +436,7 @@ Your answer:"""
     
     # Store the answer and quality assessment in state
     state["answer_quality"] = quality_assessment
-    print(response.content)
+    # print(response.content)
     # Update the state with the answer
     state["message"].append(HumanMessage(content=response.content))
 
@@ -443,6 +452,7 @@ Your answer:"""
     # print("Answer:")
     # print(state["message"])
     # print("--------------------------------")
+    state["retry_count"] = state["retry_count"] + 1
     return state
 
 def check_answer_quality(state: PlanExecute):
@@ -457,8 +467,9 @@ def check_answer_quality(state: PlanExecute):
     
     # Check if we've tried too many times (to prevent infinite loops)
     retry_count = state.get("retry_count", 0)
+    print(retry_count)
     # print(state['aggregated_context'])
-    if retry_count >= 1:
+    if retry_count >= 2:
         print("Maximum retry count reached, ending workflow")
         return "end_workflow"
     
@@ -468,7 +479,6 @@ def check_answer_quality(state: PlanExecute):
     else:
         print("Answer quality is POOR, retrying reasoning")
         # Increment retry count
-        state["retry_count"] = retry_count + 1
         # Optional: Append feedback to help improve next reasoning cycle
         state["aggregated_context"] += "\nNote: Previous answer was insufficient. Please provide more specific information."
 
@@ -508,12 +518,47 @@ def human_in_the_loopNode(state: PlanExecute):
 
     return state
 
+
+def combineSearchNode(state: PlanExecute):
+    """Retrieve information from both MongoDB and Pinecone and combine the results.
+    Args:
+        state: The current state of the plan execution.
+    Returns:
+        The updated state of the plan execution.
+    """
+    # Store original query
+    original_query = state["query_to_retrieve_or_answer"]
+    print(original_query)
+    # Run MongoDB retrieval
+    mongo_state = MongoDBretrievalNode(state.copy())
+    mongo_context = mongo_state["curr_context"]
+    
+    # Run Pinecone retrieval
+    pinecone_state = pineconeretrievalNode(state.copy())
+    pinecone_context = pinecone_state["curr_context"]
+
+    
+    # Combine results
+    state["curr_context"] = f"MongoDB Results:\n{mongo_context}\n\nPinecone Results:\n{pinecone_context}"
+    state["aggregated_context"] += "\n" + state["curr_context"]
+    
+    reasoning_step = {
+        "stage": "combined_search",
+        "content": f"Retrieved results from both MongoDB and Pinecone.\nQuery: {original_query}"
+    }
+    state["reasoning_steps"].append(reasoning_step)
+    
+    return state
+
+
+
 def create_workflow():
     agent_workflow = StateGraph(PlanExecute)
     agent_workflow.add_node("reasoning", reasoningNode)
     agent_workflow.add_node("MongoDB_retrieval", MongoDBretrievalNode)
     agent_workflow.add_node("pinecone_retrieval", pineconeretrievalNode)
     agent_workflow.add_node("answer", answerNode)
+    agent_workflow.add_node("combineSearchNode", combineSearchNode)
     agent_workflow.add_node("human_in_the_loop", human_in_the_loopNode)
     agent_workflow.add_edge(START, "reasoning")
     agent_workflow.add_conditional_edges(
@@ -523,13 +568,15 @@ def create_workflow():
             "chosen_tool_is_MongoDB_retrieval": "MongoDB_retrieval",
             "chosen_tool_is_pinecone_retrieval": "pinecone_retrieval",
             "chosen_tool_is_answer": "answer",
-            "chosen_tool_is_human_in_the_loop": "human_in_the_loop"
+            "chosen_tool_is_human_in_the_loop": "human_in_the_loop",
+            "chosen_tool_is_combine_search": "combineSearchNode"
         },
     )
 
     agent_workflow.add_edge("MongoDB_retrieval", "answer")
     agent_workflow.add_edge("pinecone_retrieval", "answer")
     agent_workflow.add_edge("human_in_the_loop", "reasoning")
+    agent_workflow.add_edge("combineSearchNode", "answer")
     agent_workflow.add_conditional_edges(
         "answer",
         check_answer_quality,

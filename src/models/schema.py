@@ -11,6 +11,7 @@ class PlanExecute(TypedDict):
     answer_quality: str
     human_feedback: str
     reasoning_steps:List[dict]
+    retry_count: int
 
 class MongoQuery(BaseModel):
     """Schema for MongoDB query generation."""

@@ -203,7 +203,8 @@ if not st.session_state.show_modal:
                 "tool": "",
                 "curr_state": "",
                 "answer_quality": "GOOD",
-                "human_feedback": ""
+                "human_feedback": "",
+                "retry_count": 0
             }
             
             with st.spinner("Thinking..."):

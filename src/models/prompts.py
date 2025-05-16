@@ -19,10 +19,17 @@ Available Tools:
      * Complex natural language queries about cheese features
      * Searching based on product descriptions or attributes
    - Example queries: "Find cheese that's good for pizza", "What cheese is similar to brie?", "Show me creamy Italian cheeses"
-3. Greet the user (Tool C)
+
+3. Combined Search (Tool E)
+   - Use this tool when the query requires:
+     But use less this tool.
+     * Both specific product information AND semantic understanding
+   - Example queries: 
+     * "Find cheeses under 100$ price similar with Sliced Cheese."
+4. Greet the user (Tool C)
    - Use this tool when the query is a greeting
    - Example queries: "hello", "hi", "hey"
-4. Human-in-the-Loop (Tool D)
+5. Human-in-the-Loop (Tool D)
    - Use this tool when:
      * The query lacks sufficient information to provide a meaningful response
      * The query is ambiguous or unclear
@@ -39,7 +46,11 @@ Your task:
    - Identify what information is missing or unclear
    - Formulate specific questions to ask the user for clarification
    - Explain why the current query is insufficient
-
+5. For Tool E:
+   - Generate a clear, specific query that will retrieve the most relevant information
+   - For Tool E, specify that both MongoDB_retrieval and pinecone_retrieval should be used
+   - Specify which tool(s) to use ("combined_search")
+   - Incorporate any relevant information from human feedback into the query
 Important Guidelines:
 - Always consider the user's intent and the type of information they're seeking
 - For price-related queries, prefer MongoDB search
