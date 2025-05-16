@@ -55,7 +55,8 @@ if "reasoning_steps" not in st.session_state:
 # App title and description
 st.title("🧀 Cheese Agent")
 st.markdown("Ask me anything about cheese products!")
-
+st.write(os.getenv("LANGSMITH_API_KEY"))
+st.write(os.getenv("LANGSMITH_PROJECT"))
 with st.sidebar:
     st.title("Chat Options")
     if st.button("New Chat"):

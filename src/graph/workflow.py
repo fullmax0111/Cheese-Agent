@@ -19,8 +19,6 @@ from src.database.mongodb_connector import MongoDBConnector
 from src.database.pinecone_connector import PineconeConnector
 from langgraph.types import Command, interrupt
 
-
-
 def retrieve_or_answer(state: PlanExecute):
     """Decide whether to retrieve or answer the question based on the current state.
     Args:
